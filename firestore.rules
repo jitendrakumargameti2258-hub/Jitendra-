@@ -1,0 +1,241 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isOptionalId(id) {
+      return id is string && id.size() <= 128 && (id.size() == 0 || id.matches('^[a-zA-Z0-9_\\-]+$'));
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUserProfile(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80 &&
+             data.roleTitle is string && data.roleTitle.size() >= 1 && data.roleTitle.size() <= 60 &&
+             data.activeSiteName is string && data.activeSiteName.size() <= 100 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidSafetySite(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.name is string && data.name.size() >= 2 && data.name.size() <= 100 &&
+             data.projectCode is string && data.projectCode.size() >= 2 && data.projectCode.size() <= 40 &&
+             data.location is string && data.location.size() >= 2 && data.location.size() <= 120 &&
+             data.managerName is string && data.managerName.size() >= 1 && data.managerName.size() <= 80 &&
+             data.status in ['ACTIVE', 'COMPLETED'] &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidSafetyRecord(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.pillar in ['OBSERVATIONS', 'INCIDENTS_CAPA', 'PROACTIVE', 'ENVIRONMENT'] &&
+             data.recordType is string && data.recordType.size() >= 2 && data.recordType.size() <= 50 &&
+             data.title is string && data.title.size() >= 3 && data.title.size() <= 120 &&
+             data.description is string && data.description.size() <= 1000 &&
+             isOptionalId(data.siteId) &&
+             data.siteName is string && data.siteName.size() >= 1 && data.siteName.size() <= 100 &&
+             data.locationArea is string && data.locationArea.size() >= 1 && data.locationArea.size() <= 100 &&
+             data.severity in ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] &&
+             data.status in ['OPEN', 'IN_PROGRESS', 'CLOSED'] &&
+             data.assignedTo is string && data.assignedTo.size() <= 80 &&
+             data.capaAction is string && data.capaAction.size() <= 600 &&
+             data.rootCause is string && data.rootCause.size() <= 600 &&
+             data.dueDateLabel is string && data.dueDateLabel.size() <= 40 &&
+             data.closureNotes is string && data.closureNotes.size() <= 600 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidSafetyInspection(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             isOptionalId(data.siteId) &&
+             data.siteName is string && data.siteName.size() >= 1 && data.siteName.size() <= 100 &&
+             data.templateName is string && data.templateName.size() >= 2 && data.templateName.size() <= 100 &&
+             data.inspectorName is string && data.inspectorName.size() >= 1 && data.inspectorName.size() <= 80 &&
+             data.area is string && data.area.size() >= 1 && data.area.size() <= 100 &&
+             data.passedCount is int && data.passedCount >= 0 && data.passedCount <= 50 &&
+             data.totalCount is int && data.totalCount >= 1 && data.totalCount <= 50 &&
+             data.passedCount <= data.totalCount &&
+             data.scorePercent is int && data.scorePercent >= 0 && data.scorePercent <= 100 &&
+             data.status in ['OPEN', 'COMPLETED'] &&
+             data.checklistItems is list && data.checklistItems.size() >= 1 && data.checklistItems.size() <= 30 &&
+             data.checklistItems[0] is string &&
+             data.notes is string && data.notes.size() <= 800 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidToolboxTalk(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             isOptionalId(data.siteId) &&
+             data.siteName is string && data.siteName.size() >= 1 && data.siteName.size() <= 100 &&
+             data.topic is string && data.topic.size() >= 3 && data.topic.size() <= 120 &&
+             data.conductorName is string && data.conductorName.size() >= 1 && data.conductorName.size() <= 80 &&
+             data.category in ['TBT', 'ORIENTATION', 'REVIEW_MEET'] &&
+             data.attendeeCount is int && data.attendeeCount >= 1 && data.attendeeCount <= 1000 &&
+             data.durationMinutes is int && data.durationMinutes >= 5 && data.durationMinutes <= 480 &&
+             data.keyTakeaways is string && data.keyTakeaways.size() <= 800 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow create: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       incoming().keys().hasAll(['userId', 'displayName', 'roleTitle', 'activeSiteName', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'displayName', 'roleTitle', 'activeSiteName', 'createdAt', 'updatedAt']) &&
+                       isValidUserProfile(incoming(), userId);
+      allow update: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       isValidUserProfile(incoming(), userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'roleTitle', 'activeSiteName', 'updatedAt']);
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      match /sites/{siteId} {
+        allow get: if isOwner(userId) && isValidId(siteId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(siteId) &&
+                         incoming().keys().hasAll(['userId', 'name', 'projectCode', 'location', 'managerName', 'status', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'name', 'projectCode', 'location', 'managerName', 'status', 'createdAt', 'updatedAt']) &&
+                         isValidSafetySite(incoming(), userId);
+        allow update: if isOwner(userId) &&
+                         isValidId(siteId) &&
+                         isValidSafetySite(incoming(), userId) &&
+                         existing().status != 'COMPLETED' &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['name', 'projectCode', 'location', 'managerName', 'status', 'updatedAt']);
+        allow delete: if isOwner(userId) && isValidId(siteId);
+      }
+
+      match /safety_records/{recordId} {
+        allow get: if isOwner(userId) && isValidId(recordId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(recordId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'pillar', 'recordType', 'title', 'description',
+                           'siteId', 'siteName', 'locationArea', 'severity', 'status',
+                           'assignedTo', 'capaAction', 'rootCause', 'dueDateLabel',
+                           'closureNotes', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'pillar', 'recordType', 'title', 'description',
+                           'siteId', 'siteName', 'locationArea', 'severity', 'status',
+                           'assignedTo', 'capaAction', 'rootCause', 'dueDateLabel',
+                           'closureNotes', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidSafetyRecord(incoming(), userId);
+        allow update: if isOwner(userId) &&
+                         isValidId(recordId) &&
+                         isValidSafetyRecord(incoming(), userId) &&
+                         existing().status != 'CLOSED' &&
+                         incoming().userId == existing().userId &&
+                         incoming().pillar == existing().pillar &&
+                         incoming().createdAt == existing().createdAt &&
+                         (
+                           (
+                             incoming().status in ['OPEN', 'IN_PROGRESS'] &&
+                             incoming().diff(existing()).affectedKeys().hasOnly([
+                               'status', 'assignedTo', 'capaAction', 'rootCause',
+                               'dueDateLabel', 'severity', 'description', 'updatedAt'
+                             ])
+                           ) ||
+                           (
+                             incoming().status == 'CLOSED' &&
+                             incoming().closureNotes.size() >= 3 &&
+                             incoming().diff(existing()).affectedKeys().hasOnly([
+                               'status', 'closureNotes', 'capaAction', 'rootCause', 'updatedAt'
+                             ])
+                           )
+                         );
+        allow delete: if isOwner(userId) && isValidId(recordId);
+      }
+
+      match /inspections/{inspectionId} {
+        allow get: if isOwner(userId) && isValidId(inspectionId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(inspectionId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'siteId', 'siteName', 'templateName', 'inspectorName',
+                           'area', 'passedCount', 'totalCount', 'scorePercent', 'status',
+                           'checklistItems', 'notes', 'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'siteId', 'siteName', 'templateName', 'inspectorName',
+                           'area', 'passedCount', 'totalCount', 'scorePercent', 'status',
+                           'checklistItems', 'notes', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidSafetyInspection(incoming(), userId);
+        allow update: if isOwner(userId) &&
+                         isValidId(inspectionId) &&
+                         isValidSafetyInspection(incoming(), userId) &&
+                         existing().status != 'COMPLETED' &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'passedCount', 'scorePercent', 'status', 'checklistItems', 'notes', 'updatedAt'
+                         ]);
+        allow delete: if isOwner(userId) && isValidId(inspectionId);
+      }
+
+      match /toolbox_talks/{tbtId} {
+        allow get: if isOwner(userId) && isValidId(tbtId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+                         isValidId(tbtId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'siteId', 'siteName', 'topic', 'conductorName',
+                           'category', 'attendeeCount', 'durationMinutes', 'keyTakeaways',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'siteId', 'siteName', 'topic', 'conductorName',
+                           'category', 'attendeeCount', 'durationMinutes', 'keyTakeaways',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidToolboxTalk(incoming(), userId);
+        allow update: if isOwner(userId) &&
+                         isValidId(tbtId) &&
+                         isValidToolboxTalk(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'topic', 'conductorName', 'category', 'attendeeCount',
+                           'durationMinutes', 'keyTakeaways', 'updatedAt'
+                         ]);
+        allow delete: if isOwner(userId) && isValidId(tbtId);
+      }
+    }
+  }
+}

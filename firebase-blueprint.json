@@ -1,0 +1,367 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated EHS officer or field engineer profile and active site context.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase UID matching the owner."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Officer or engineer display name."
+        },
+        "roleTitle": {
+          "type": "string",
+          "description": "Safety role title (e.g., EHS Officer, Site Engineer)."
+        },
+        "activeSiteName": {
+          "type": "string",
+          "description": "Currently selected site or project name."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "displayName",
+        "roleTitle",
+        "activeSiteName",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SafetySite": {
+      "title": "SafetySite",
+      "description": "Project or plant site monitored under the 6 Senses of EHS model.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase UID."
+        },
+        "name": {
+          "type": "string",
+          "description": "Project or site name."
+        },
+        "projectCode": {
+          "type": "string",
+          "description": "Project code identifier."
+        },
+        "location": {
+          "type": "string",
+          "description": "City, zone, or facility location."
+        },
+        "managerName": {
+          "type": "string",
+          "description": "Site EHS lead or manager name."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["ACTIVE", "COMPLETED"],
+          "description": "Site operational status."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "name",
+        "projectCode",
+        "location",
+        "managerName",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SafetyRecord": {
+      "title": "SafetyRecord",
+      "description": "Unified EHS log for Observations, Incidents & CAPA, Proactive Measures, and Environmental Performance.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase UID."
+        },
+        "pillar": {
+          "type": "string",
+          "enum": ["OBSERVATIONS", "INCIDENTS_CAPA", "PROACTIVE", "ENVIRONMENT"],
+          "description": "View EHS pillar category."
+        },
+        "recordType": {
+          "type": "string",
+          "description": "Specific classification (e.g., Unsafe Act, Near Miss, Incident, PTW Check, Spill Control)."
+        },
+        "title": {
+          "type": "string",
+          "description": "Concise hazard, incident, or compliance title."
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed field observation or context."
+        },
+        "siteId": {
+          "type": "string",
+          "description": "Associated SafetySite document ID or empty string."
+        },
+        "siteName": {
+          "type": "string",
+          "description": "Site name label."
+        },
+        "locationArea": {
+          "type": "string",
+          "description": "Specific zone or plant area."
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+          "description": "Risk severity level."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["OPEN", "IN_PROGRESS", "CLOSED"],
+          "description": "CAPA and resolution lifecycle state."
+        },
+        "assignedTo": {
+          "type": "string",
+          "description": "Responsible person for CAPA closure."
+        },
+        "capaAction": {
+          "type": "string",
+          "description": "Corrective and preventive action plan."
+        },
+        "rootCause": {
+          "type": "string",
+          "description": "Root cause analysis summary."
+        },
+        "dueDateLabel": {
+          "type": "string",
+          "description": "Target closure date label."
+        },
+        "closureNotes": {
+          "type": "string",
+          "description": "Verification notes recorded when closing the item."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "pillar",
+        "recordType",
+        "title",
+        "description",
+        "siteId",
+        "siteName",
+        "locationArea",
+        "severity",
+        "status",
+        "assignedTo",
+        "capaAction",
+        "rootCause",
+        "dueDateLabel",
+        "closureNotes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SafetyInspection": {
+      "title": "SafetyInspection",
+      "description": "IMS Implementation & Site Audit checklist record.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase UID."
+        },
+        "siteId": {
+          "type": "string",
+          "description": "Associated SafetySite document ID or empty string."
+        },
+        "siteName": {
+          "type": "string",
+          "description": "Site name."
+        },
+        "templateName": {
+          "type": "string",
+          "description": "IMS audit checklist template name."
+        },
+        "inspectorName": {
+          "type": "string",
+          "description": "Auditor or safety engineer name."
+        },
+        "area": {
+          "type": "string",
+          "description": "Inspected plant or construction zone."
+        },
+        "passedCount": {
+          "type": "integer",
+          "description": "Number of passed checklist points."
+        },
+        "totalCount": {
+          "type": "integer",
+          "description": "Total checklist points evaluated."
+        },
+        "scorePercent": {
+          "type": "integer",
+          "description": "Computed compliance percentage (0-100)."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["OPEN", "COMPLETED"],
+          "description": "Audit status."
+        },
+        "checklistItems": {
+          "type": "array",
+          "description": "Encoded checklist items (item text + result status)."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Audit summary observations."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "siteId",
+        "siteName",
+        "templateName",
+        "inspectorName",
+        "area",
+        "passedCount",
+        "totalCount",
+        "scorePercent",
+        "status",
+        "checklistItems",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ToolboxTalk": {
+      "title": "ToolboxTalk",
+      "description": "Training, Daily Toolbox Talk (TBT), Orientation, or EHS Review Meet record.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase UID."
+        },
+        "siteId": {
+          "type": "string",
+          "description": "Associated SafetySite document ID or empty string."
+        },
+        "siteName": {
+          "type": "string",
+          "description": "Site name."
+        },
+        "topic": {
+          "type": "string",
+          "description": "Training or toolbox talk topic."
+        },
+        "conductorName": {
+          "type": "string",
+          "description": "Trainer or safety officer name."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["TBT", "ORIENTATION", "REVIEW_MEET"],
+          "description": "Session type."
+        },
+        "attendeeCount": {
+          "type": "integer",
+          "description": "Number of workforce attendees."
+        },
+        "durationMinutes": {
+          "type": "integer",
+          "description": "Session duration in minutes."
+        },
+        "keyTakeaways": {
+          "type": "string",
+          "description": "Key safety instructions covered."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "siteId",
+        "siteName",
+        "topic",
+        "conductorName",
+        "category",
+        "attendeeCount",
+        "durationMinutes",
+        "keyTakeaways",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Authenticated user's EHS officer profile."
+    },
+    "/users/{userId}/sites/{siteId}": {
+      "schema": { "$ref": "#/entities/SafetySite" },
+      "description": "User-managed construction or plant sites."
+    },
+    "/users/{userId}/safety_records/{recordId}": {
+      "schema": { "$ref": "#/entities/SafetyRecord" },
+      "description": "Observations, Incidents & CAPA, Proactive Measures, and Environment records."
+    },
+    "/users/{userId}/inspections/{inspectionId}": {
+      "schema": { "$ref": "#/entities/SafetyInspection" },
+      "description": "IMS Implementation & Site Safety Audit checklists."
+    },
+    "/users/{userId}/toolbox_talks/{tbtId}": {
+      "schema": { "$ref": "#/entities/ToolboxTalk" },
+      "description": "Training, Toolbox Talks, and EHS Review Meets."
+    }
+  }
+}

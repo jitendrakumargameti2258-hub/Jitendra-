@@ -1,0 +1,6 @@
+{
+  "name": "SiteGuard EHS",
+  "description": "Environment, Health, and Safety (EHS) management app modeled on the 6-pillar View EHS system with live safety KPI scoring, hazard observations, incident & CAPA tracking, proactive measures, toolbox talks, and environmental compliance.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

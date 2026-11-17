@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">SiteGuard EHS</string>
+    <string name="tagline_six_senses">6 Senses of EHS Compliance</string>
+    <string name="sign_in_google">Sign in with Google</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="nav_dashboard">6 Senses</string>
+    <string name="nav_logs">Field Logs</string>
+    <string name="nav_audits">IMS Audits</string>
+    <string name="nav_training">TBT &amp; Sites</string>
+    <string name="fab_report_safety">Log EHS</string>
+    <string name="hero_banner_desc">Industrial engineering site safety inspection banner</string>
+</resources>
